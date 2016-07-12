@@ -26,13 +26,14 @@ tau_inh       =   10. * ms # Synaptic time constant (inhibitory)
 Vcut = Vt + 5 * Delta #Taken from brian documentary
 
 
-ext_rate      = 300 * Hz                # Rate of the external source
-#ext_input     = 0 * nA #external current
+#ext_rate      = 100 * Hz                # Rate of the external source
+ext_input     = 0 * nA #external current
 
 # Pick an electrophysiological behaviour
 a, b= 0.001 * usiemens, 0.04 * nA # Regular spiking (as in the paper)
 # a, b= 0.001 * usiemens, 0.005 * nA # Bursting
 # a, b= 0.001  *usiemens, 0 * nA # Fast spiking
+a, b = 0.04 *usiemens, 0 *nA #robust bursting and weaker SFA
 
 
 ### Equation for a Conductance-based IAF ####
@@ -43,48 +44,27 @@ dge/dt = -ge*(1./tau_exc) : siemens
 dgi/dt = -gi*(1./tau_inh) : siemens
 I_ext : amp                                             # external current
 ''')
-#P = NeuronGroup(20, eqs, threshold='v>Vt', reset="v=Vr; wa+=b", method='euler')
-#P = NeuronGroup(40, eqs, threshold='v>Vt', reset="v=Vr; wa+=b", method='euler')
-#P = NeuronGroup(60, eqs, threshold='v>Vt', reset="v=Vr; wa+=b", method='euler')
-#P = NeuronGroup(80, eqs, threshold='v>Vt', reset="v=Vr; wa+=b",method='euler')
-P = NeuronGroup(100, eqs, threshold='v>Vt',  reset="v=Vr; wa+=b", method='euler')
-#P.I_ext = ext_input
+
+P = NeuronGroup(80, eqs, threshold='v>Vt',  reset="v=Vr; wa+=b", method='euler')
+P.I_ext = ext_input
 P.v = -60*mV
 
-#Pe=P[:10]
-#Pi=P[10:]
-#Pe=P[:30]
-#Pi=P[30:]
-#Pe=P[:45]
-#Pi=P[45:]
-#Pe = P[:60]
-#Pi = P[60:]
-Pe = P[:75]
-Pi = P[75:]
-Ce = Synapses(Pe, Pi,on_pre='ge+=g_exc') # 11mV
+Pe = P[:64]
+Pi = P[64:]
+Ce = Synapses(Pe, P,on_pre='ge+=g_exc') # 11mV
 Ce.connect(p=0.02)
 Ci = Synapses(Pi, P, on_pre='gi-=g_inh') # 8.5mV
 Ci.connect(p=0.08)
-PG = PoissonGroup(10, 0.*Hz)
-INP = Synapses(PG, P, on_pre='v+=1*mV')
-INP.connect(p=0.9)
-
-poisson = StateMonitor(PG, 'rates', record=0)
 
 trace = StateMonitor(P, 'v', record=0)
 spikes = SpikeMonitor(P)
+stim = StateMonitor(P, 'I_ext', record=0)
 
-#stim = StateMonitor(P, 'I_ext', record=0)
-
-#P.I_ext = 0.25*nA
-PG.rates = 0.* Hz
-run(200 * ms)
-#P.I_ext = 0.*nA
-PG.rates = ext_rate
+run(100 * ms)
+P.I_ext = 0.25*nA
 run(50 * ms)
-#P.I_ext = 0*nA
-PG.rates = 0.* Hz
-run(750 * ms)
+P.I_ext = 0*nA
+run(850 * ms)
 # P.I_ext = -0.25*nA
 # run(400 * ms)
 # P.I_ext = 0*nA
@@ -108,10 +88,10 @@ title("Regular spiking neuron")
 
 figure()
 
-plot(trace.t/ms, poisson[0].rates[:]/ Hz)
-title("Random rate stimulus")
+plot(trace.t/ms, stim[0].I_ext[:]/ nA)
+title("Step-wise stimulus")
 xlabel('time (ms)')
-ylabel('Rate (Hz)')
+ylabel('Input current (nA)')
 
 
 figure()
@@ -120,10 +100,6 @@ xlabel('time (ms)')
 ylabel('NEURON ID')
 title("Raster plot")
 xlim(0, 1000)
-#ylim(0, 20)
-#ylim(0, 40)
-#ylim(0, 60)
-#ylim(0, 80)
-ylim(0, 100)
+ylim(-0.5, 40.5)
 show()
 
