@@ -23,14 +23,13 @@ Ei            =   0.* mV # Reversal potential (inhibition)
 tau_exc       =   5. * ms # Synaptic time constant (excitatory)
 tau_inh       =   10. * ms # Synaptic time constant (inhibitory)
 
-ext_rate      = 300 * Hz                # Rate of the external source
-#ext_input     = 0 * nA #external current
+ext_rate      = 40 * Hz                # Rate of the external source
+ext_input     = 0 * nA #external current
 
 # Pick an electrophysiological behaviour
-a, b= 0.001* usiemens, 0.04 * nA # Regular spiking (as in the paper)
-# a, b= 0.001 * usiemens, 0.005 * nA # Bursting
+a, b= 0.001 * usiemens, 0.04 * nA # Regular spiking (as in the paper)
+#a, b= 0.001 * usiemens, 0.005 * nA # Bursting
 # a, b= 0.001  *usiemens, 0 * nA # Fast spiking
-
 
 ### Equation for a Conductance-based IAF ####
 eqs = Equations('''
@@ -38,33 +37,22 @@ dv/dt  = (gl*(El-v) + ge*(Ee-v)/ S +gi*(Ei-v)/ S + I_ext / S + gl*Delta*exp((v-V
 dwa/dt  = (a*(v - El)-wa)/tw : amp
 dge/dt = -ge*(1./tau_exc) : siemens
 dgi/dt = -gi*(1./tau_inh) : siemens
-I_ext : amp                                             # external current
+I_ext = ext_input : amp                                             # external current
 ''')
-#P = NeuronGroup(20, eqs, threshold='v>Vt', refractory='tau_ref', reset="v=Vr; wa+=b", method='euler')
-#P = NeuronGroup(40, eqs, threshold='v>Vt', refractory='tau_ref', reset="v=Vr; wa+=b", method='euler')
-P = NeuronGroup(60, eqs, threshold='v>Vt', refractory='tau_ref', reset="v=Vr; wa+=b", method='euler')
-#P = NeuronGroup(80, eqs, threshold='v>Vt', refractory='tau_ref', reset="v=Vr; wa+=b",method='euler')
-#P = NeuronGroup(100, eqs, threshold='v>Vt', refractory='tau_ref', reset="v=Vr; wa+=b", method='euler')
+
+P = NeuronGroup(200, eqs, threshold='v>Vt', refractory='tau_ref', reset="v=Vr; wa+=b", method='euler')
 #P.I_ext = ext_input
 P.v = -60*mV
 
-#Pe=P[:10]
-#Pi=P[10:]
-#Pe=P[:20]
-#Pi=P[20:]
-Pe=P[:40]
-Pi=P[40:]
-#Pe = P[:50]
-#Pi = P[50:]
-#Pe = P[:80]
-#Pi = P[80:]
-Ce = Synapses(Pe, Pi,on_pre='ge+=g_exc') # 11mV
+Pe = P[:160]
+Pi = P[160:]
+Ce = Synapses(Pe, P,on_pre='ge+=g_exc') # 11mV
 Ce.connect(p=0.02)
 Ci = Synapses(Pi, P, on_pre='gi-=g_inh') # 8.5mV
-Ci.connect(p=0.08)
-PG = PoissonGroup(100, 0.*Hz)
-INP = Synapses(PG, P, on_pre='v+=0.09*mV')
-INP.connect(p=1)
+Ci.connect(p=0.02)
+PG = PoissonGroup(200, 0.*Hz)
+INP = Synapses(PG, P, on_pre='v+=0.1*mV')
+INP.connect(p=0.8)
 
 poisson = StateMonitor(PG, 'rates', record=0)
 
@@ -113,15 +101,15 @@ ylabel('Rate (Hz)')
 
 figure()
 vlines(spikes.t/ms, spikes.i-0.5, spikes.i+0.5)
-savetxt('thalamus_100.txt', c_[spikes.t, spikes.i])
+savetxt('cortex_200.txt', c_[spikes.t, spikes.i])
 xlabel('time (ms)')
 ylabel('NEURON ID')
 title("Raster plot")
 xlim(0, 1000)
 #ylim(0, 20)
 #ylim(0, 40)
-ylim(0, 60)
+#ylim(0, 60)
 #ylim(0, 80)
-#ylim(0, 100)
+ylim(0, 200)
 show()
 

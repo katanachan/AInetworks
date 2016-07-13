@@ -30,7 +30,9 @@ ext_rate      = 300 * Hz                # Rate of the external source
 a, b= 0.001* usiemens, 0.04 * nA # Regular spiking (as in the paper)
 # a, b= 0.001 * usiemens, 0.005 * nA # Bursting
 # a, b= 0.001  *usiemens, 0 * nA # Fast spiking
-
+#a, b = 0.02 *usiemens, 0 * nA #LTS Low Threshold Spiking
+a, b = 0.04 *usiemens, 0 *nA # TC cells - more robust bursting activity and weaker spike-frequency adaptation
+a, b = 0.08 *usiemens, 0.03 * nA #bursting activity in response to depolarising and hyperpolarising stimuli
 
 ### Equation for a Conductance-based IAF ####
 eqs = Equations('''
@@ -40,52 +42,24 @@ dge/dt = -ge*(1./tau_exc) : siemens
 dgi/dt = -gi*(1./tau_inh) : siemens
 I_ext : amp                                             # external current
 ''')
-#P = NeuronGroup(20, eqs, threshold='v>Vt', refractory='tau_ref', reset="v=Vr; wa+=b", method='euler')
-#P = NeuronGroup(40, eqs, threshold='v>Vt', refractory='tau_ref', reset="v=Vr; wa+=b", method='euler')
-P = NeuronGroup(60, eqs, threshold='v>Vt', refractory='tau_ref', reset="v=Vr; wa+=b", method='euler')
-#P = NeuronGroup(80, eqs, threshold='v>Vt', refractory='tau_ref', reset="v=Vr; wa+=b",method='euler')
-#P = NeuronGroup(100, eqs, threshold='v>Vt', refractory='tau_ref', reset="v=Vr; wa+=b", method='euler')
-#P.I_ext = ext_input
+P = NeuronGroup(1, eqs, threshold='v>Vt', refractory='tau_ref', reset="v=Vr; wa+=b", method='euler')
 P.v = -60*mV
-
-#Pe=P[:10]
-#Pi=P[10:]
-#Pe=P[:20]
-#Pi=P[20:]
-Pe=P[:40]
-Pi=P[40:]
-#Pe = P[:50]
-#Pi = P[50:]
-#Pe = P[:80]
-#Pi = P[80:]
-Ce = Synapses(Pe, Pi,on_pre='ge+=g_exc') # 11mV
-Ce.connect(p=0.02)
-Ci = Synapses(Pi, P, on_pre='gi-=g_inh') # 8.5mV
-Ci.connect(p=0.08)
-PG = PoissonGroup(100, 0.*Hz)
-INP = Synapses(PG, P, on_pre='v+=0.09*mV')
-INP.connect(p=1)
-
-poisson = StateMonitor(PG, 'rates', record=0)
 
 trace = StateMonitor(P, 'v', record=0)
 spikes = SpikeMonitor(P)
 
-#stim = StateMonitor(P, 'I_ext', record=0)
+stim = StateMonitor(P, 'I_ext', record=0)
 
-#P.I_ext = 0.25*nA
-PG.rates = 0.* Hz
+P.I_ext = 0.25*nA
 run(200 * ms)
-#P.I_ext = 0.*nA
-PG.rates = ext_rate
+P.I_ext = 0.*nA
 run(50 * ms)
-#P.I_ext = 0*nA
-PG.rates = 0.* Hz
+P.I_ext = 0*nA
 run(750 * ms)
-# P.I_ext = -0.25*nA
-# run(400 * ms)
-# P.I_ext = 0*nA
-# run(400 * ms)
+P.I_ext = -0.25*nA
+run(400 * ms)
+P.I_ext = 0*nA
+run(400 * ms)
 
 import seaborn
 seaborn.set()
@@ -105,7 +79,7 @@ title("Regular spiking neuron")
 
 figure()
 
-plot(trace.t/ms, poisson[0].rates[:]/ Hz)
+plot(trace.t/ms, [0].rates[:]/ Hz)
 title("Random rate stimulus")
 xlabel('time (ms)')
 ylabel('Rate (Hz)')
@@ -113,15 +87,13 @@ ylabel('Rate (Hz)')
 
 figure()
 vlines(spikes.t/ms, spikes.i-0.5, spikes.i+0.5)
-savetxt('thalamus_100.txt', c_[spikes.t, spikes.i])
 xlabel('time (ms)')
 ylabel('NEURON ID')
 title("Raster plot")
 xlim(0, 1000)
-#ylim(0, 20)
+ylim(0, 20)
 #ylim(0, 40)
-ylim(0, 60)
+#ylim(0, 60)
 #ylim(0, 80)
 #ylim(0, 100)
 show()
-
