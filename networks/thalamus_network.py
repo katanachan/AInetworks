@@ -62,7 +62,7 @@ Ce = Synapses(Pe, Pi,on_pre='ge+=g_exc') # 11mV
 Ce.connect(p=0.02)
 Ci = Synapses(Pi, P, on_pre='gi-=g_inh') # 8.5mV
 Ci.connect(p=0.08)
-PG = PoissonGroup(100, 0.*Hz)
+PG = PoissonGroup(40, 0.*Hz)
 INP = Synapses(PG, P, on_pre='v+=0.09*mV')
 INP.connect(p=1)
 
