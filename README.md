@@ -18,4 +18,5 @@ For single neuron model:
 <br>To initiate activity, a number of randomly-chosen neurons (from 2% to 10% of the network) were stimulated by random excitatory inputs during the first 50 ms of the simulation. The mean frequency of this random activity was high enough (200–400 Hz) to evoke random firing in the recipient neurons. In cases where selfsustained activity appeared to be unstable, different parameters of this initial stimulation were tested.  It is
 important to note that after this initial period of 50 ms, no input was given to the network and thus the activity states described here are self-sustained with no external input or added noise. The only source of noise was the random connectivity (also termed “quenched noise”).
 
-The plots for a network of neurons of 20, 40, 60, 80 and 100 neurons in the network are present in the networks/ folder. The Poisson Input was given at 200 ms at a rate of 300 Hz.
+<br>The plots for a network of neurons of 20, 40, 60, 80 and 100 neurons in the network are present in the networks/ folder. The Poisson Input was given at 200 ms at a rate of 300 Hz.
+<br>Observations: As we increase the networks size, the mean firing rate increased and the irregulariy and asynchrony became higher.
